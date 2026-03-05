@@ -110,7 +110,7 @@ class SleepViewModel(
             sensorMonitor.disturbanceEvents.collect { timestamp ->
                 val hour = Calendar.getInstance().apply { timeInMillis = timestamp }.get(Calendar.HOUR_OF_DAY)
                 val isSleepModeActive = activeSession.value != null
-                if (inferenceEngine.shouldLogDisturbance(hour, isSleepModeActive)) {
+                if (isSleepModeActive) {
                     sleepRepository.logDisturbance(timestamp)
                 }
             }

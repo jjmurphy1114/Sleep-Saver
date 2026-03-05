@@ -18,10 +18,6 @@ class SleepInferenceEngine {
         return !inWindow || (!inputs.isCharging && bright)
     }
 
-    fun shouldLogDisturbance(currentHour24: Int, isSleepMode: Boolean): Boolean {
-        return isSleepMode && currentHour24 in 0..5
-    }
-
     private fun isWithinWindow(hour: Int, start: Int, end: Int): Boolean {
         return if (start <= end) {
             hour in start until end

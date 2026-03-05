@@ -49,7 +49,7 @@ class EnvironmentSensorMonitor(
     private var lastDisturbanceTime = 0L
     private companion object {
         const val DISTURBANCE_THROTTLE_MS = 500L
-        const val ACCELEROMETER_THRESHOLD = 3f
+        const val ACCELEROMETER_THRESHOLD = 2f
     }
 
     private val stateReceiver = object : BroadcastReceiver() {

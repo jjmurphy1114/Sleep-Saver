@@ -318,8 +318,8 @@ private fun PrivacyScreen(onDeleteData: () -> Unit) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        item { Text("Privacy by design", style = MaterialTheme.typography.titleLarge) }
-        item { Text("- Light sensor values are not images and are not stored continuously.") }
+        item { Text("Privacy", style = MaterialTheme.typography.titleLarge) }
+        item { Text("- Light sensor values are not images and are not stored.") }
         item { Text("- Proximity sensor does not identify people.") }
         item { Text("- No audio recording and no location collection.") }
         item { Text("- Data remains local in on-device Room storage.") }
@@ -332,7 +332,7 @@ private fun PrivacyScreen(onDeleteData: () -> Unit) {
                         .padding(16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Delete local sleep history")
+                    Text("Delete sleep history")
                     Switch(checked = false, onCheckedChange = { if (it) onDeleteData() })
                 }
             }
