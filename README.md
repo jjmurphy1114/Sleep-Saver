@@ -1,28 +1,28 @@
-# Sleep Saver - Context-Aware Sleep Companion
+# Sleep Saver: The Context-Aware Sleep Companion
 
-**Developer:** Jacob Murphy (worked alone)
+**Developer:** Jacob Murphy
 
-Sleep Saver infers bedtime automatically using on-device context signals and logs nightly sleep behavior without requiring a manual "Start Sleep" button.
+Sleep Saver infers bedtime automatically using device context signals and logs nightly sleep behavior without requiring a manual "Start Sleep" button.
 
 ## Core Concept
 
-The app intelligently detects sleep using **sensor fusion** and environmental signals:
+The app detects sleep using **sensor fusion** and environmental signals:
 
-1. **Light Sensor** (Hardware #1) - Detects dark environment (lights-off behavior)
-2. **Proximity Sensor** (Hardware #2) - Detects face-down phone placement (intentional sleep position)
-3. **Battery Charging State** (Virtual Sensor) - Indicates nighttime routine and device availability
-4. **Time Window** - Restricts detection to typical sleep hours (10 PM - 2 AM, configurable)
+1. **Light Sensor** (Hardware #1): Detects dark environment (lights-off behavior)
+2. **Proximity Sensor** (Hardware #2): Detects face-down phone placement (intentional sleep position)
+3. **Battery Charging State** (Virtual Sensor): Indicates nighttime routine and device availability
+4. **Time Window**: Restricts detection to typical sleep hours (10 PM - 2 AM, configurable)
 
 ## How It Works
 
 ### Sleep Detection (Inference Logic)
-Sleep Mode activates **only when ALL conditions are met:**
+Sleep Mode activates **only when all conditions are met:**
 - Ambient light < threshold (default: 8 lux)
 - Phone is face-down (proximity sensor near)
 - Device is actively charging
 - Current time is within configured sleep window
 
-This multi-signal fusion prevents false positives from accidental dim lighting or casual charging.
+This multi-signal fusion prevents false positives from accidental dim lighting or charging.
 
 ### Disturbance Tracking
 During active sleep mode (between 12 AM and 6 AM), the app detects disturbances:
@@ -33,7 +33,7 @@ Each disturbance is logged to the database for analysis.
 
 ## Architecture: MVVM Pattern
 
-### Model Layer (`data/` package)
+### Model Layer (`data/`)
 - **Room Database** (`SleepSaverDatabase`, `SleepSessionEntity`, `DisturbanceEventEntity`)
   - Persists sleep sessions with start/end times
   - Stores individual disturbance events linked to sessions
@@ -42,7 +42,7 @@ Each disturbance is logged to the database for analysis.
   - User settings: detection enabled, light threshold, sleep window, auto-DND toggle, dark mode
   - Latest sensor snapshot for quick access
 
-### View Layer (`ui/` package)
+### View Layer (`ui/`)
 - **Compose UI** in `MainActivity.kt`
   - **Dashboard**: Sleep status, tonight's start time, disturbance count, weekly summary
   - **Context Logic**: Explains sensor fusion and detection logic
@@ -79,8 +79,6 @@ Each disturbance is logged to the database for analysis.
 - Current disturbance count
 - Consistency score (based on sleep start time variance)
 - Weekly summary: Start times, durations, disturbance counts
-- Live sensor snapshot: ambient light (lux), charging state, face-down status
-- Adaptive layout: Single column on phones, two-pane on tablets (≥700dp)
 
 ### Context Logic Screen
 Explains:
@@ -88,11 +86,11 @@ Explains:
 - Why proximity matters (face-down detection, not facial recognition)
 - Why charging matters (bedtime routine signal)
 - Time window role (prevents false positives outside typical sleep hours)
-- How all signals combine for robust inference
+- How all signals combine for comprehensive inference
 
-### Privacy by Design Screen
+### Privacy Screen
 - Certifies light sensor doesn't record images (lux values only)
-- Confirms proximity sensor doesn't identify people (near/far only)
+- Confirms proximity sensor doesn't identify people
 - Affirms no audio recording, no location tracking
 - Documents local-only storage (Room database + DataStore)
 - Provides history deletion switch (clears all sessions and disturbances)
@@ -105,43 +103,16 @@ User-configurable toggles and sliders:
 - **Auto Do Not Disturb**: Toggle automatic DND when sleep detected
 - **Manual Dark Mode**: Toggle dark theme (independent of system preferences)
 
-## Permissions
-
-- `BODY_SENSORS` - Light and proximity sensor access
-- `ACCESS_NOTIFICATION_POLICY` - Do Not Disturb control
-- `SCHEDULE_EXACT_ALARM` - WorkManager background task scheduling
-- `INTERNET` - Network connectivity for background work
-
 ## Data Persistence
 
 - **Room Database** (`sleep_saver.db`)
   - 2 tables: `sleep_sessions` and `disturbance_events`
   - Auto-increment IDs, foreign key relationships
-  - Version: 1 (no migrations yet)
 - **DataStore Preferences**
   - User settings (detection, thresholds, times, toggles)
-  - Latest sensor snapshot for offline inference
+  - Latest sensor snapshot for offline use
 
-## Build and Test
-
-### Build APK
-```powershell
-cd "C:\Users\jjmur\Documents\Programming\CS-4518\Sleep-Saver"
-.\gradlew.bat :app:assembleDebug --console=plain
-```
-
-### Run Unit Tests
-```powershell
-.\gradlew.bat :app:testDebugUnitTest --console=plain
-```
-
-### Run on Emulator
-```powershell
-.\gradlew.bat :app:installDebug --console=plain
-adb shell am start -n com.example.sleepsaver/.MainActivity
-```
-
-## Quick Test Flow (Professor Instructions)
+## Test Flow
 
 ### Test Sleep Detection
 
@@ -176,11 +147,8 @@ adb shell am start -n com.example.sleepsaver/.MainActivity
 ### Test Dark Mode Toggle
 
 1. Navigate to **Settings** screen
-2. Find "Manual dark mode" toggle
-3. Toggle on/off
-4. Verify UI colors switch between:
-   - **Light mode**: Soft morning tones (light background, indigo accents)
-   - **Dark mode**: Deep blue/indigo palette (dark background, lavender accents)
+2. Find "Manual dark mode" toggle and toggle on/off
+3. Verify UI colors switch between light and dark mode
 
 ### Test Settings Persistence
 
@@ -189,42 +157,11 @@ adb shell am start -n com.example.sleepsaver/.MainActivity
 3. Relaunch app
 4. Verify all settings are restored
 
-## Architecture Compliance
-
-### MVVM Separation
-- **Model**: All data logic in `data/local/` (Room, DAOs) and `data/settings/` (DataStore)
-- **View**: All UI rendering in `MainActivity.kt` (Compose screens)
-- **ViewModel**: All app logic in `SleepViewModel.kt` (sensor fusion, inference, coordination)
-
-### Adaptive Layout
-- Detects `LocalConfiguration.screenWidthDp`
-- Phones (<700dp): Vertical stacked layout
-- Tablets (≥700dp): Two-pane layout (status left, weekly summary right)
-
-### Custom Theme
-- `ui/theme/Color.kt`: Indigo Primary (0xFF2E3A8C), Lavender Accent (0xFFB39DDB), custom night/morning colors
-- `ui/theme/Shape.kt`: Rounded corners (12/18/24 dp)
-- `ui/theme/Theme.kt`: Light and dark color schemes applied via `SleepSaverTheme()`
-
-### Navigation
-- Bottom navigation bar with 4 destinations
-- Navigation state persisted with `saveState = true` and `restoreState = true`
-
 ## References & Resources
 
 - **Android Sensors API**: https://developer.android.com/guide/topics/sensors
-- **Room Database**: https://developer.android.com/training/data-storage/room
+- **Room Database**: https://developer.android.com/training/data-storage/room (I also used this for my MQP!)
 - **DataStore Preferences**: https://developer.android.com/topic/libraries/architecture/datastore
 - **WorkManager**: https://developer.android.com/topic/libraries/architecture/workmanager
 - **Compose Layout**: https://developer.android.com/jetpack/compose/layouts
 - **Material 3 Theme**: https://developer.android.com/develop/ui/compose/designsystems/material3
-
-## Notes
-
-- DND auto-toggle requires device-level permission grant at runtime (API 31+)
-- `android.disallowKotlinSourceSets=false` in `gradle.properties` allows KSP with current AGP
-- Disturbance detection respects sleep mode: only logs between 12 AM - 6 AM during active sleep
-- Light threshold default (8 lux) is calibrated for typical indoor lighting transition
-- Accelerometer threshold (6 m/s² change) filters out environmental vibrations
-
-
