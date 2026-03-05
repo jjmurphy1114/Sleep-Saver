@@ -1,3 +1,7 @@
+/*
+ * Jacob Murphy
+ */
+
 package com.example.sleepsaver.platform
 
 data class EnvironmentSnapshot(

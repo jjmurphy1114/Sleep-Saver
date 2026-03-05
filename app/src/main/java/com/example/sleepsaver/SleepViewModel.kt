@@ -1,3 +1,7 @@
+/*
+ * Jacob Murphy
+ */
+
 package com.example.sleepsaver
 
 import androidx.lifecycle.ViewModel
@@ -55,11 +59,23 @@ class SleepViewModel(
         AppSettings()
     )
 
+    private val activeSession = sleepRepository.observeActiveSession().stateIn(
+        viewModelScope,
+        SharingStarted.Eagerly,
+        null
+    )
+
+    private val recentSessions = sleepRepository.observeRecentSessions().stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5_000),
+        emptyList()
+    )
+
     private val ticker = MutableStateFlow(System.currentTimeMillis())
 
     val dashboard: StateFlow<DashboardUiState> = combine(
-        sleepRepository.observeActiveSession(),
-        sleepRepository.observeRecentSessions(),
+        activeSession,
+        recentSessions,
         sensorMonitor.snapshot,
         ticker
     ) { activeSession, recentSessions, snapshot, _ ->
@@ -93,7 +109,8 @@ class SleepViewModel(
         viewModelScope.launch {
             sensorMonitor.disturbanceEvents.collect { timestamp ->
                 val hour = Calendar.getInstance().apply { timeInMillis = timestamp }.get(Calendar.HOUR_OF_DAY)
-                if (inferenceEngine.shouldLogDisturbance(hour, dashboard.value.isSleepModeActive)) {
+                val isSleepModeActive = activeSession.value != null
+                if (inferenceEngine.shouldLogDisturbance(hour, isSleepModeActive)) {
                     sleepRepository.logDisturbance(timestamp)
                 }
             }
@@ -144,7 +161,7 @@ class SleepViewModel(
             timestampMillis = now
         )
 
-        val isSleepMode = dashboard.value.isSleepModeActive
+        val isSleepMode = activeSession.value != null
         if (!isSleepMode && inferenceEngine.shouldEnterSleep(inputs, settings)) {
             sleepRepository.startSessionIfNeeded(now)
             if (settings.autoDndEnabled) {
@@ -199,4 +216,3 @@ class SleepViewModelFactory(private val container: AppContainer) : ViewModelProv
         throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }
 }
-

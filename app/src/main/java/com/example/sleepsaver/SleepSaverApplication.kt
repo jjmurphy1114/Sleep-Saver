@@ -1,3 +1,7 @@
+/*
+ * Jacob Murphy
+ */
+
 package com.example.sleepsaver
 
 import android.app.Application

@@ -1,3 +1,7 @@
+/*
+ * Jacob Murphy
+ */
+
 package com.example.sleepsaver.platform
 
 import android.content.BroadcastReceiver
@@ -42,6 +46,11 @@ class EnvironmentSensorMonitor(
 
     private var isRegistered = false
     private var lastMagnitude = 0f
+    private var lastDisturbanceTime = 0L
+    private companion object {
+        const val DISTURBANCE_THROTTLE_MS = 500L
+        const val ACCELEROMETER_THRESHOLD = 3f
+    }
 
     private val stateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -91,8 +100,13 @@ class EnvironmentSensorMonitor(
                 val y = event.values.getOrNull(1) ?: return
                 val z = event.values.getOrNull(2) ?: return
                 val magnitude = sqrt((x * x) + (y * y) + (z * z))
-                if (lastMagnitude != 0f && abs(magnitude - lastMagnitude) > 6f) {
-                    _disturbanceEvents.tryEmit(now)
+                val now = System.currentTimeMillis()
+                if (lastMagnitude != 0f && abs(magnitude - lastMagnitude) > ACCELEROMETER_THRESHOLD) {
+                    // Throttle disturbance events to avoid flooding
+                    if (now - lastDisturbanceTime >= DISTURBANCE_THROTTLE_MS) {
+                        _disturbanceEvents.tryEmit(now)
+                        lastDisturbanceTime = now
+                    }
                 }
                 lastMagnitude = magnitude
             }

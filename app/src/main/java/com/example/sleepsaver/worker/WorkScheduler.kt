@@ -1,3 +1,7 @@
+/*
+ * Jacob Murphy
+ */
+
 package com.example.sleepsaver.worker
 
 import android.content.Context
